@@ -1,21 +1,13 @@
 import mongoose from 'mongoose';
 
-export default {
-  connect: (DB_HOST) => {
-    mongoose.set('useNewUrlParser', true);
-    mongoose.set('useFindAndModify', false);
-    mongoose.set('useCreateIndex', true);
-    mongoose.set('useUnifiedTopology', true);
-    mongoose.connect(DB_HOST);
-    mongoose.connection.on('error', (err) => {
-      console.error(err);
-      console.log(
-        'MongoDB connection error. Please make sure MongoDB is running.'
-      );
-      process.exit();
+export default async (dbHost) => {
+  try {
+    await mongoose.connect(dbHost, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-  },
-  close: () => {
-    mongoose.connection.close();
-  },
+    console.log('Connected to MongoDB database');
+  } catch (error) {
+    console.error('Error connecting to MongoDB database', error);
+  }
 };

@@ -1,65 +1,36 @@
 import express from 'express';
-import { ApolloServer, gql } from 'apollo-server-express';
+import mongoose from 'mongoose';
+import { ApolloServer } from 'apollo-server-express';
+import connectToDB from './db.js';
+import models from './models/index.js';
+import typeDefs from './schema.js';
+import resolvers from './resolvers/index.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
-import db from './db.js';
 
 const port = process.env.PORT || 4000;
 const DB_HOST = process.env.DB_HOST;
 
-let notes = [
-  { id: '1', content: 'This is a note', author: 'Adam Scott' },
-  { id: '2', content: 'This is another note', author: 'Harlow Everly' },
-  { id: '3', content: 'Oh hey look, another note!', author: 'Riley Harrison' },
-];
-
-const typeDefs = gql`
-  type Note {
-    id: ID!
-    content: String!
-    author: String!
-  }
-  type Query {
-    hello: String
-    notes: [Note!]!
-    note(id: ID!): Note!
-  }
-  type Mutation {
-    newNote(content: String!): Note!
-  }
-`;
-
-const resolvers = {
-  Query: {
-    hello: () => 'Hello world!',
-    notes: () => notes,
-    note: (parent, args) => {
-      return notes.find((note) => note.id === args.id);
-    },
-  },
-  Mutation: {
-    newNote: (parent, args) => {
-      let noteValue = {
-        id: String(notes.length + 1),
-        content: args.content,
-        author: 'Adam Scott',
-      };
-      notes.push(noteValue);
-      return noteValue;
-    },
-  },
-};
-
 const app = express();
 
-db.connect(DB_HOST);
+connectToDB(DB_HOST);
+const db = mongoose.connection;
+db.on('error', (error) =>
+  console.error('Error connecting to MongoDB database', error)
+);
 
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: () => {
+    return { models };
+  },
+});
 
 server.applyMiddleware({ app, path: '/api' });
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
 app.listen(port, () =>
-  console.log(`GraphQL Server running at http://localhost:${port}`)
+  console.log(`Server running at http://localhost:${port}`)
 );
