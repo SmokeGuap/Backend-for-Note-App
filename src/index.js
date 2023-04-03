@@ -5,6 +5,7 @@ import connectToDB from './db.js';
 import models from './models/index.js';
 import typeDefs from './schema.js';
 import resolvers from './resolvers/index.js';
+import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -22,10 +23,23 @@ db.on('error', (error) =>
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: () => {
-    return { models };
+  context: ({ req }) => {
+    const token = req.headers.authorization;
+    const user = getUser(token);
+    console.log(user);
+    return { models, user };
   },
 });
+
+const getUser = (token) => {
+  if (token) {
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      new Error('Session invalid');
+    }
+  }
+};
 
 server.applyMiddleware({ app, path: '/api' });
 
