@@ -10,7 +10,7 @@ export default gql`
     updatedAt: DateTime!
   }
   type User {
-    id: ID!
+    _id: ID!
     username: String!
     email: String!
     avatar: String
