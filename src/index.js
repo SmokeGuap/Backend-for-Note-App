@@ -6,6 +6,9 @@ import models from './models/index.js';
 import typeDefs from './schema.js';
 import resolvers from './resolvers/index.js';
 import jwt from 'jsonwebtoken';
+import cors from 'cors';
+import depthLimit from 'graphql-depth-limit';
+import { createComplexityLimitRule } from 'graphql-validation-complexity';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,6 +16,7 @@ const port = process.env.PORT || 4000;
 const DB_HOST = process.env.DB_HOST;
 
 const app = express();
+app.use(cors());
 
 connectToDB(DB_HOST);
 const db = mongoose.connection;
@@ -23,10 +27,10 @@ db.on('error', (error) =>
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => {
+  validationRules: [depthLimit(5), createComplexityLimitRule(1000)],
+  context: async ({ req }) => {
     const token = req.headers.authorization;
-    const user = getUser(token);
-    console.log(user);
+    const user = await getUser(token);
     return { models, user };
   },
 });
