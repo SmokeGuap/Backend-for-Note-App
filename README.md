@@ -4,11 +4,11 @@ It is backend part of Note App
 
 ## Used technologies
 
-- React
-- React Router
+- Express
+- Mongoose
 - GraphQL
-- Apollo Client
-- Styled Components
+- Apollo Server
+- JsonWebToken
 
 ## How to run
 
