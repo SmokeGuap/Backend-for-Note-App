@@ -25,7 +25,7 @@ export default {
       throw new ForbiddenError("You don't have permissions to delete the note");
     }
     try {
-      await note.remove();
+      await models.Note.findOneAndDelete({ _id: id });
       return true;
     } catch (err) {
       return false;
